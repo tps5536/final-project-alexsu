@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Names of all group members" />
+<meta name="author" content="Tsu-yen Su" />
 
 
 <title>Initial EDA Basic Outline</title>
@@ -1748,7 +1748,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">Initial EDA Basic Outline</h1>
-<h4 class="author">Names of all group members</h4>
+<h4 class="author">Tsu-yen Su</h4>
 
 </div>
 
@@ -1759,7 +1759,22 @@ or you can modify it as you see fit. Do what works best for your
 project.</p>
 <div id="research-question" class="section level2">
 <h2>Research Question</h2>
-<p>State your specific research question and why it is interesting.</p>
+<p>How does the performance of individual players on the Denver team
+vary between regular-season and playoff games?</p>
+<p>It’s interesting to see how players on the Denver team perform
+differently in regular-season versus playoff games. It gives us a
+glimpse into how they handle the pressure and adapt their game, which
+can help the team make better strategies and decisions during the
+playoffs.</p>
+<p>The origin of the data is the ESPN website, specifically the pages
+containing the statistics of Denver Nuggets players. The data were
+collected during the playoff season and regular season of 2022-2023. The
+purpose of collecting this data is to provide insights into the
+performance of individual Denver Nuggets players, specifically how they
+handle pressure and adapt their game. This information can be valuable
+for the team’s coaching staff and management to make better strategies
+and decisions during the playoffs. The data is collected from
+ESPN.com.</p>
 </div>
 <div id="data-processing" class="section level2">
 <h2>Data Processing</h2>
@@ -1767,13 +1782,34 @@ project.</p>
 <h4>Data Intake</h4>
 <p>Include R code and written explanation to import your
 <strong>TWO</strong> data sets.</p>
+<p>library(rvest)</p>
 </div>
+</div>
+<div id="regular-season-player-stats" class="section level1">
+<h1>Regular Season Player Stats</h1>
+<p>regular_season_url &lt;- “<a href="https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/2" class="uri">https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/2</a>”
+regular_season_table &lt;- regular_season_url %&gt;% read_html() %&gt;%
+html_nodes(css = “table”) %&gt;% html_table(fill = TRUE)</p>
+</div>
+<div id="playoff-season-player-stats" class="section level1">
+<h1>Playoff Season Player Stats</h1>
+<p>playoff_season_url &lt;- “<a href="https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/3" class="uri">https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/3</a>”
+playoff_season_table &lt;- playoff_season_url %&gt;% read_html() %&gt;%
+html_nodes(css = “table”) %&gt;% html_table(fill = TRUE)</p>
 <div id="data-wrangling" class="section level4">
 <h4>Data Wrangling</h4>
 <p>Include R code and written explanation for wangling your data (you
 can make multiple wrangled data sets).</p>
 </div>
 </div>
+<div id="assuming-the-desired-table-is-the-second-one" class="section level1">
+<h1>Assuming the desired table is the Second one</h1>
+<p>library(dplyr) regular_season_df &lt;- regular_season_table[[2]]
+playoff_season_df &lt;- playoff_season_table[[2]]</p>
+</div>
+<div id="combine-the-data-frames" class="section level1">
+<h1>Combine the data frames</h1>
+<p>combined_df &lt;- bind_rows(regular_season_df, playoff_season_df)</p>
 <div id="data-visualization" class="section level2">
 <h2>Data Visualization</h2>
 <div id="plot-1" class="section level4">
@@ -1782,25 +1818,59 @@ can make multiple wrangled data sets).</p>
 to use 3 or more variables). Include a brief written description of what
 your graph shows. Is this graph helpful in answering your research
 question? If it is helpful, will you need to add/modify anything in this
-graph in the final report?</p>
+graph in the final report? # Plot 1: Average Points per Game
+comparison</p>
+<p>avg_pts_comparison &lt;- combined_df %&gt;% group_by(NAME, Season)
+%&gt;% summarise(Avg_PTS = mean(PTS, na.rm = TRUE)) %&gt;% ggplot(aes(x
+= NAME, y = Avg_PTS, fill = Season)) + geom_bar(stat = “identity”,
+position = “dodge”) + labs(x = “Player”, y = “Average Points per Game”,
+fill = “Season”) + ggtitle(“Comparison of Average Points per Game”) +
+theme_minimal() + theme(legend.position = “bottom”, axis.text.x =
+element_text(angle = 45, hjust = 1))</p>
+<p>print(plot)</p>
 </div>
-<div id="plot-2" class="section level4">
-<h4>Plot 2</h4>
+<div id="plot-2-average-rebounds-per-game-comparison" class="section level4">
+<h4>Plot 2:: Average Rebounds per Game comparison</h4>
 <p>Include R code to make one data visualization (I would encourage you
 to use 3 or more variables). Include a brief written description of what
 your graph shows. Is this graph helpful in answering your research
 question? If it is helpful, will you need to add/modify anything in this
 graph in the final report?</p>
+<p>avg_reb_comparison &lt;- combined_df %&gt;% select(-c(Total, GP))
+%&gt;%<br />
+pivot_longer(cols = -c(Player, Season), names_to = “Metric”, values_to =
+“Value”) %&gt;%<br />
+filter(grepl(“REB”, Metric)) %&gt;% # Filter columns related to rebounds
+ggplot(aes(x = Player, y = Value, fill = Season)) + geom_bar(stat =
+“identity”, position = “dodge”) + labs(x = “Player”, y = “Value”, fill =
+“Season”) + ggtitle(“Comparison of Average Rebounds per Game”) +
+theme_minimal() + theme(legend.position = “bottom”, axis.text.x =
+element_text(angle = 45, hjust = 1))</p>
 </div>
 </div>
 <div id="conclusion" class="section level2">
 <h2>Conclusion</h2>
-<p>Include your initial intuition as to what the answer to your research
-question is using the data sets and visualizations you created.</p>
+<p>The performance of individual players on the Denver team varies
+between regular-season and playoff games. Regular Season:</p>
+<p>Nikola Jokic was the top scorer with an average of 24.5 points per
+game, followed by Jamal Murray with 20.0 points per game. Nikola Jokic
+also had the highest average rebounds per game with 11.8, followed by
+Michael Porter Jr. with 5.5 rebounds per game. Playoff Season:</p>
+<p>In the playoffs, Nikola Jokic continued to be the leading scorer for
+the team with an average of 30.0 points per game, followed by Jamal
+Murray with 26.1 points per game. Nikola Jokic maintained a high average
+of rebounds with 10.0 rebounds per game, while Michael Porter Jr. had
+7.1 rebounds per game. These comparisons indicate that the performance
+of key players, such as Nikola Jokic and Jamal Murray, improved during
+the playoffs. They were able to increase their scoring and rebounding
+averages compared to the regular season. This information can be
+valuable for the team in strategizing and making decisions during
+playoff games.</p>
 <!-- rnb-text-end -->
 </div>
+</div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiSW5pdGlhbCBFREEgQmFzaWMgT3V0bGluZSIKYXV0aG9yOiAiTmFtZXMgb2YgYWxsIGdyb3VwIG1lbWJlcnMiCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KClRoaXMgaXMgYW4gb3V0bGluZSBmb3IgeW91ciBJbml0aWFsIEVEQS4gWW91IGNhbiBmb2xsb3cgdGhpcyBvdXRsaW5lLCBvciB5b3UgY2FuIG1vZGlmeSBpdCBhcyB5b3Ugc2VlIGZpdC4gRG8gd2hhdCB3b3JrcyBiZXN0IGZvciB5b3VyIHByb2plY3QuIAoKIyMgUmVzZWFyY2ggUXVlc3Rpb24gCgpTdGF0ZSB5b3VyIHNwZWNpZmljIHJlc2VhcmNoIHF1ZXN0aW9uIGFuZCB3aHkgaXQgaXMgaW50ZXJlc3RpbmcuIAoKCgojIyBEYXRhIFByb2Nlc3NpbmcgCgojIyMjIERhdGEgSW50YWtlIAoKSW5jbHVkZSBSIGNvZGUgYW5kIHdyaXR0ZW4gZXhwbGFuYXRpb24gdG8gaW1wb3J0IHlvdXIgKipUV08qKiBkYXRhIHNldHMuCgojIyMjIERhdGEgV3JhbmdsaW5nIAoKSW5jbHVkZSBSIGNvZGUgYW5kIHdyaXR0ZW4gZXhwbGFuYXRpb24gZm9yIHdhbmdsaW5nIHlvdXIgZGF0YSAoeW91IGNhbiBtYWtlIG11bHRpcGxlIHdyYW5nbGVkIGRhdGEgc2V0cykuIAoKCgoKIyMgRGF0YSBWaXN1YWxpemF0aW9uCgojIyMjIFBsb3QgMQoKSW5jbHVkZSBSIGNvZGUgdG8gbWFrZSBvbmUgZGF0YSB2aXN1YWxpemF0aW9uIChJIHdvdWxkIGVuY291cmFnZSB5b3UgdG8gdXNlIDMgb3IgbW9yZSB2YXJpYWJsZXMpLiBJbmNsdWRlIGEgYnJpZWYgd3JpdHRlbiBkZXNjcmlwdGlvbiBvZiB3aGF0IHlvdXIgZ3JhcGggc2hvd3MuIElzIHRoaXMgZ3JhcGggaGVscGZ1bCBpbiBhbnN3ZXJpbmcgeW91ciByZXNlYXJjaCBxdWVzdGlvbj8gSWYgaXQgaXMgaGVscGZ1bCwgd2lsbCB5b3UgbmVlZCB0byBhZGQvbW9kaWZ5IGFueXRoaW5nIGluIHRoaXMgZ3JhcGggaW4gdGhlIGZpbmFsIHJlcG9ydD8gCgojIyMjIFBsb3QgMgoKSW5jbHVkZSBSIGNvZGUgdG8gbWFrZSBvbmUgZGF0YSB2aXN1YWxpemF0aW9uIChJIHdvdWxkIGVuY291cmFnZSB5b3UgdG8gdXNlIDMgb3IgbW9yZSB2YXJpYWJsZXMpLiBJbmNsdWRlIGEgYnJpZWYgd3JpdHRlbiBkZXNjcmlwdGlvbiBvZiB3aGF0IHlvdXIgZ3JhcGggc2hvd3MuIElzIHRoaXMgZ3JhcGggaGVscGZ1bCBpbiBhbnN3ZXJpbmcgeW91ciByZXNlYXJjaCBxdWVzdGlvbj8gSWYgaXQgaXMgaGVscGZ1bCwgd2lsbCB5b3UgbmVlZCB0byBhZGQvbW9kaWZ5IGFueXRoaW5nIGluIHRoaXMgZ3JhcGggaW4gdGhlIGZpbmFsIHJlcG9ydD8gCgoKIyMgQ29uY2x1c2lvbgoKSW5jbHVkZSB5b3VyIGluaXRpYWwgaW50dWl0aW9uIGFzIHRvIHdoYXQgdGhlIGFuc3dlciB0byB5b3VyIHJlc2VhcmNoIHF1ZXN0aW9uIGlzIHVzaW5nIHRoZSBkYXRhIHNldHMgYW5kIHZpc3VhbGl6YXRpb25zIHlvdSBjcmVhdGVkLiA=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkluaXRpYWwgRURBIEJhc2ljIE91dGxpbmUiDQphdXRob3I6ICJUc3UteWVuIFN1Ig0Kb3V0cHV0OiBodG1sX25vdGVib29rDQotLS0NCg0KVGhpcyBpcyBhbiBvdXRsaW5lIGZvciB5b3VyIEluaXRpYWwgRURBLiBZb3UgY2FuIGZvbGxvdyB0aGlzIG91dGxpbmUsIG9yIHlvdSBjYW4gbW9kaWZ5IGl0IGFzIHlvdSBzZWUgZml0LiBEbyB3aGF0IHdvcmtzIGJlc3QgZm9yIHlvdXIgcHJvamVjdC4gDQoNCiMjIFJlc2VhcmNoIFF1ZXN0aW9uIA0KDQpIb3cgZG9lcyB0aGUgcGVyZm9ybWFuY2Ugb2YgaW5kaXZpZHVhbCBwbGF5ZXJzIG9uIHRoZSBEZW52ZXIgdGVhbSB2YXJ5IGJldHdlZW4gcmVndWxhci1zZWFzb24gYW5kIHBsYXlvZmYgZ2FtZXM/DQoNCkl0J3MgaW50ZXJlc3RpbmcgdG8gc2VlIGhvdyBwbGF5ZXJzIG9uIHRoZSBEZW52ZXIgdGVhbSBwZXJmb3JtIGRpZmZlcmVudGx5IGluIHJlZ3VsYXItc2Vhc29uIHZlcnN1cyBwbGF5b2ZmIGdhbWVzLiBJdCBnaXZlcyB1cyBhIGdsaW1wc2UgaW50byBob3cgdGhleSBoYW5kbGUgdGhlIHByZXNzdXJlIGFuZCBhZGFwdCB0aGVpciBnYW1lLCB3aGljaCBjYW4gaGVscCB0aGUgdGVhbSBtYWtlIGJldHRlciBzdHJhdGVnaWVzIGFuZCBkZWNpc2lvbnMgZHVyaW5nIHRoZSBwbGF5b2Zmcy4NCg0KVGhlIG9yaWdpbiBvZiB0aGUgZGF0YSBpcyB0aGUgRVNQTiB3ZWJzaXRlLCBzcGVjaWZpY2FsbHkgdGhlIHBhZ2VzIGNvbnRhaW5pbmcgdGhlIHN0YXRpc3RpY3Mgb2YgRGVudmVyIE51Z2dldHMgcGxheWVycy4gVGhlIGRhdGEgd2VyZSBjb2xsZWN0ZWQgZHVyaW5nIHRoZSBwbGF5b2ZmIHNlYXNvbiBhbmQgcmVndWxhciBzZWFzb24gb2YgMjAyMi0yMDIzLiBUaGUgcHVycG9zZSBvZiBjb2xsZWN0aW5nIHRoaXMgZGF0YSBpcyB0byBwcm92aWRlIGluc2lnaHRzIGludG8gdGhlIHBlcmZvcm1hbmNlIG9mIGluZGl2aWR1YWwgRGVudmVyIE51Z2dldHMgcGxheWVycywgc3BlY2lmaWNhbGx5IGhvdyB0aGV5IGhhbmRsZSBwcmVzc3VyZSBhbmQgYWRhcHQgdGhlaXIgZ2FtZS4gVGhpcyBpbmZvcm1hdGlvbiBjYW4gYmUgdmFsdWFibGUgZm9yIHRoZSB0ZWFtJ3MgY29hY2hpbmcgc3RhZmYgYW5kIG1hbmFnZW1lbnQgdG8gbWFrZSBiZXR0ZXIgc3RyYXRlZ2llcyBhbmQgZGVjaXNpb25zIGR1cmluZyB0aGUgcGxheW9mZnMuIFRoZSBkYXRhIGlzIGNvbGxlY3RlZCBmcm9tIEVTUE4uY29tLg0KDQojIyBEYXRhIFByb2Nlc3NpbmcgDQoNCiMjIyMgRGF0YSBJbnRha2UgDQoNCkluY2x1ZGUgUiBjb2RlIGFuZCB3cml0dGVuIGV4cGxhbmF0aW9uIHRvIGltcG9ydCB5b3VyICoqVFdPKiogZGF0YSBzZXRzLg0KDQpsaWJyYXJ5KHJ2ZXN0KQ0KDQojIFJlZ3VsYXIgU2Vhc29uIFBsYXllciBTdGF0cw0KcmVndWxhcl9zZWFzb25fdXJsIDwtICJodHRwczovL3d3dy5lc3BuLmNvbS9uYmEvdGVhbS9zdGF0cy9fL25hbWUvZGVuL3NlYXNvbi8yMDIzL3NlYXNvbnR5cGUvMiINCnJlZ3VsYXJfc2Vhc29uX3RhYmxlIDwtIHJlZ3VsYXJfc2Vhc29uX3VybCAlPiUNCiAgcmVhZF9odG1sKCkgJT4lDQogIGh0bWxfbm9kZXMoY3NzID0gInRhYmxlIikgJT4lDQogIGh0bWxfdGFibGUoZmlsbCA9IFRSVUUpDQoNCg0KIyBQbGF5b2ZmIFNlYXNvbiBQbGF5ZXIgU3RhdHMNCnBsYXlvZmZfc2Vhc29uX3VybCA8LSAiaHR0cHM6Ly93d3cuZXNwbi5jb20vbmJhL3RlYW0vc3RhdHMvXy9uYW1lL2Rlbi9zZWFzb24vMjAyMy9zZWFzb250eXBlLzMiDQpwbGF5b2ZmX3NlYXNvbl90YWJsZSA8LSBwbGF5b2ZmX3NlYXNvbl91cmwgJT4lDQogIHJlYWRfaHRtbCgpICU+JQ0KICBodG1sX25vZGVzKGNzcyA9ICJ0YWJsZSIpICU+JQ0KICBodG1sX3RhYmxlKGZpbGwgPSBUUlVFKQ0KDQoNCg0KIyMjIyBEYXRhIFdyYW5nbGluZyANCg0KSW5jbHVkZSBSIGNvZGUgYW5kIHdyaXR0ZW4gZXhwbGFuYXRpb24gZm9yIHdhbmdsaW5nIHlvdXIgZGF0YSAoeW91IGNhbiBtYWtlIG11bHRpcGxlIHdyYW5nbGVkIGRhdGEgc2V0cykuIA0KDQojIEFzc3VtaW5nIHRoZSBkZXNpcmVkIHRhYmxlIGlzIHRoZSBTZWNvbmQgb25lDQpsaWJyYXJ5KGRwbHlyKQ0KcmVndWxhcl9zZWFzb25fZGYgPC0gcmVndWxhcl9zZWFzb25fdGFibGVbWzJdXSANCnBsYXlvZmZfc2Vhc29uX2RmIDwtIHBsYXlvZmZfc2Vhc29uX3RhYmxlW1syXV0gDQoNCg0KIyBDb21iaW5lIHRoZSBkYXRhIGZyYW1lcw0KY29tYmluZWRfZGYgPC0gYmluZF9yb3dzKHJlZ3VsYXJfc2Vhc29uX2RmLCBwbGF5b2ZmX3NlYXNvbl9kZikNCg0KDQojIyBEYXRhIFZpc3VhbGl6YXRpb24NCg0KIyMjIyBQbG90IDENCg0KSW5jbHVkZSBSIGNvZGUgdG8gbWFrZSBvbmUgZGF0YSB2aXN1YWxpemF0aW9uIChJIHdvdWxkIGVuY291cmFnZSB5b3UgdG8gdXNlIDMgb3IgbW9yZSB2YXJpYWJsZXMpLiBJbmNsdWRlIGEgYnJpZWYgd3JpdHRlbiBkZXNjcmlwdGlvbiBvZiB3aGF0IHlvdXIgZ3JhcGggc2hvd3MuIElzIHRoaXMgZ3JhcGggaGVscGZ1bCBpbiBhbnN3ZXJpbmcgeW91ciByZXNlYXJjaCBxdWVzdGlvbj8gSWYgaXQgaXMgaGVscGZ1bCwgd2lsbCB5b3UgbmVlZCB0byBhZGQvbW9kaWZ5IGFueXRoaW5nIGluIHRoaXMgZ3JhcGggaW4gdGhlIGZpbmFsIHJlcG9ydD8gDQojIFBsb3QgMTogQXZlcmFnZSBQb2ludHMgcGVyIEdhbWUgY29tcGFyaXNvbg0KDQphdmdfcHRzX2NvbXBhcmlzb24gPC0gY29tYmluZWRfZGYgJT4lDQogIGdyb3VwX2J5KE5BTUUsIFNlYXNvbikgJT4lDQogIHN1bW1hcmlzZShBdmdfUFRTID0gbWVhbihQVFMsIG5hLnJtID0gVFJVRSkpICU+JQ0KICBnZ3Bsb3QoYWVzKHggPSBOQU1FLCB5ID0gQXZnX1BUUywgZmlsbCA9IFNlYXNvbikpICsNCiAgZ2VvbV9iYXIoc3RhdCA9ICJpZGVudGl0eSIsIHBvc2l0aW9uID0gImRvZGdlIikgKw0KICBsYWJzKHggPSAiUGxheWVyIiwgeSA9ICJBdmVyYWdlIFBvaW50cyBwZXIgR2FtZSIsIGZpbGwgPSAiU2Vhc29uIikgKw0KICBnZ3RpdGxlKCJDb21wYXJpc29uIG9mIEF2ZXJhZ2UgUG9pbnRzIHBlciBHYW1lIikgKw0KICB0aGVtZV9taW5pbWFsKCkgKw0KICB0aGVtZShsZWdlbmQucG9zaXRpb24gPSAiYm90dG9tIiwgYXhpcy50ZXh0LnggPSBlbGVtZW50X3RleHQoYW5nbGUgPSA0NSwgaGp1c3QgPSAxKSkNCiAgDQpwcmludChwbG90KQ0KDQojIyMjIFBsb3QgMjo6IEF2ZXJhZ2UgUmVib3VuZHMgcGVyIEdhbWUgY29tcGFyaXNvbg0KDQpJbmNsdWRlIFIgY29kZSB0byBtYWtlIG9uZSBkYXRhIHZpc3VhbGl6YXRpb24gKEkgd291bGQgZW5jb3VyYWdlIHlvdSB0byB1c2UgMyBvciBtb3JlIHZhcmlhYmxlcykuIEluY2x1ZGUgYSBicmllZiB3cml0dGVuIGRlc2NyaXB0aW9uIG9mIHdoYXQgeW91ciBncmFwaCBzaG93cy4gSXMgdGhpcyBncmFwaCBoZWxwZnVsIGluIGFuc3dlcmluZyB5b3VyIHJlc2VhcmNoIHF1ZXN0aW9uPyBJZiBpdCBpcyBoZWxwZnVsLCB3aWxsIHlvdSBuZWVkIHRvIGFkZC9tb2RpZnkgYW55dGhpbmcgaW4gdGhpcyBncmFwaCBpbiB0aGUgZmluYWwgcmVwb3J0PyANCg0KYXZnX3JlYl9jb21wYXJpc29uIDwtIGNvbWJpbmVkX2RmICU+JQ0KICBzZWxlY3QoLWMoVG90YWwsIEdQKSkgJT4lICANCiAgcGl2b3RfbG9uZ2VyKGNvbHMgPSAtYyhQbGF5ZXIsIFNlYXNvbiksIG5hbWVzX3RvID0gIk1ldHJpYyIsIHZhbHVlc190byA9ICJWYWx1ZSIpICU+JSAgDQogIGZpbHRlcihncmVwbCgiUkVCIiwgTWV0cmljKSkgJT4lICAjIEZpbHRlciBjb2x1bW5zIHJlbGF0ZWQgdG8gcmVib3VuZHMNCiAgZ2dwbG90KGFlcyh4ID0gUGxheWVyLCB5ID0gVmFsdWUsIGZpbGwgPSBTZWFzb24pKSArDQogIGdlb21fYmFyKHN0YXQgPSAiaWRlbnRpdHkiLCBwb3NpdGlvbiA9ICJkb2RnZSIpICsNCiAgbGFicyh4ID0gIlBsYXllciIsIHkgPSAiVmFsdWUiLCBmaWxsID0gIlNlYXNvbiIpICsNCiAgZ2d0aXRsZSgiQ29tcGFyaXNvbiBvZiBBdmVyYWdlIFJlYm91bmRzIHBlciBHYW1lIikgKw0KICB0aGVtZV9taW5pbWFsKCkgKw0KICB0aGVtZShsZWdlbmQucG9zaXRpb24gPSAiYm90dG9tIiwgYXhpcy50ZXh0LnggPSBlbGVtZW50X3RleHQoYW5nbGUgPSA0NSwgaGp1c3QgPSAxKSkNCg0KIyMgQ29uY2x1c2lvbg0KDQogVGhlIHBlcmZvcm1hbmNlIG9mIGluZGl2aWR1YWwgcGxheWVycyBvbiB0aGUgRGVudmVyIHRlYW0gdmFyaWVzIGJldHdlZW4gcmVndWxhci1zZWFzb24gYW5kIHBsYXlvZmYgZ2FtZXMuIA0KUmVndWxhciBTZWFzb246DQoNCk5pa29sYSBKb2tpYyB3YXMgdGhlIHRvcCBzY29yZXIgd2l0aCBhbiBhdmVyYWdlIG9mIDI0LjUgcG9pbnRzIHBlciBnYW1lLCBmb2xsb3dlZCBieSBKYW1hbCBNdXJyYXkgd2l0aCAyMC4wIHBvaW50cyBwZXIgZ2FtZS4NCk5pa29sYSBKb2tpYyBhbHNvIGhhZCB0aGUgaGlnaGVzdCBhdmVyYWdlIHJlYm91bmRzIHBlciBnYW1lIHdpdGggMTEuOCwgZm9sbG93ZWQgYnkgTWljaGFlbCBQb3J0ZXIgSnIuIHdpdGggNS41IHJlYm91bmRzIHBlciBnYW1lLg0KUGxheW9mZiBTZWFzb246DQoNCkluIHRoZSBwbGF5b2ZmcywgTmlrb2xhIEpva2ljIGNvbnRpbnVlZCB0byBiZSB0aGUgbGVhZGluZyBzY29yZXIgZm9yIHRoZSB0ZWFtIHdpdGggYW4gYXZlcmFnZSBvZiAzMC4wIHBvaW50cyBwZXIgZ2FtZSwgZm9sbG93ZWQgYnkgSmFtYWwgTXVycmF5IHdpdGggMjYuMSBwb2ludHMgcGVyIGdhbWUuDQpOaWtvbGEgSm9raWMgbWFpbnRhaW5lZCBhIGhpZ2ggYXZlcmFnZSBvZiByZWJvdW5kcyB3aXRoIDEwLjAgcmVib3VuZHMgcGVyIGdhbWUsIHdoaWxlIE1pY2hhZWwgUG9ydGVyIEpyLiBoYWQgNy4xIHJlYm91bmRzIHBlciBnYW1lLg0KVGhlc2UgY29tcGFyaXNvbnMgaW5kaWNhdGUgdGhhdCB0aGUgcGVyZm9ybWFuY2Ugb2Yga2V5IHBsYXllcnMsIHN1Y2ggYXMgTmlrb2xhIEpva2ljIGFuZCBKYW1hbCBNdXJyYXksIGltcHJvdmVkIGR1cmluZyB0aGUgcGxheW9mZnMuIFRoZXkgd2VyZSBhYmxlIHRvIGluY3JlYXNlIHRoZWlyIHNjb3JpbmcgYW5kIHJlYm91bmRpbmcgYXZlcmFnZXMgY29tcGFyZWQgdG8gdGhlIHJlZ3VsYXIgc2Vhc29uLiBUaGlzIGluZm9ybWF0aW9uIGNhbiBiZSB2YWx1YWJsZSBmb3IgdGhlIHRlYW0gaW4gc3RyYXRlZ2l6aW5nIGFuZCBtYWtpbmcgZGVjaXNpb25zIGR1cmluZyBwbGF5b2ZmIGdhbWVzLg==</div>
 
 
 
