@@ -1,6 +1,6 @@
 ---
 title: "Initial EDA Basic Outline"
-author: "Names of all group members"
+author: "Tsu-yen Su"
 output: html_notebook
 ---
 
@@ -8,9 +8,11 @@ This is an outline for your Initial EDA. You can follow this outline, or you can
 
 ## Research Question 
 
-State your specific research question and why it is interesting. 
+How does the performance of individual players on the Denver team vary between regular-season and playoff games?
 
+It's interesting to see how players on the Denver team perform differently in regular-season versus playoff games. It gives us a glimpse into how they handle the pressure and adapt their game, which can help the team make better strategies and decisions during the playoffs.
 
+The origin of the data is the ESPN website, specifically the pages containing the statistics of Denver Nuggets players. The data were collected during the playoff season and regular season of 2022-2023. The purpose of collecting this data is to provide insights into the performance of individual Denver Nuggets players, specifically how they handle pressure and adapt their game. This information can be valuable for the team's coaching staff and management to make better strategies and decisions during the playoffs. The data is collected from ESPN.com.
 
 ## Data Processing 
 
@@ -18,11 +20,37 @@ State your specific research question and why it is interesting.
 
 Include R code and written explanation to import your **TWO** data sets.
 
+library(rvest)
+
+# Regular Season Player Stats
+regular_season_url <- "https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/2"
+regular_season_table <- regular_season_url %>%
+  read_html() %>%
+  html_nodes(css = "table") %>%
+  html_table(fill = TRUE)
+
+
+# Playoff Season Player Stats
+playoff_season_url <- "https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/3"
+playoff_season_table <- playoff_season_url %>%
+  read_html() %>%
+  html_nodes(css = "table") %>%
+  html_table(fill = TRUE)
+
+
+
 #### Data Wrangling 
 
 Include R code and written explanation for wangling your data (you can make multiple wrangled data sets). 
 
+# Assuming the desired table is the Second one
+library(dplyr)
+regular_season_df <- regular_season_table[[2]] 
+playoff_season_df <- playoff_season_table[[2]] 
 
+
+# Combine the data frames
+combined_df <- bind_rows(regular_season_df, playoff_season_df)
 
 
 ## Data Visualization
@@ -30,12 +58,44 @@ Include R code and written explanation for wangling your data (you can make mult
 #### Plot 1
 
 Include R code to make one data visualization (I would encourage you to use 3 or more variables). Include a brief written description of what your graph shows. Is this graph helpful in answering your research question? If it is helpful, will you need to add/modify anything in this graph in the final report? 
+# Plot 1: Average Points per Game comparison
 
-#### Plot 2
+avg_pts_comparison <- combined_df %>%
+  group_by(NAME, Season) %>%
+  summarise(Avg_PTS = mean(PTS, na.rm = TRUE)) %>%
+  ggplot(aes(x = NAME, y = Avg_PTS, fill = Season)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Player", y = "Average Points per Game", fill = "Season") +
+  ggtitle("Comparison of Average Points per Game") +
+  theme_minimal() +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
+  
+print(plot)
+
+#### Plot 2:: Average Rebounds per Game comparison
 
 Include R code to make one data visualization (I would encourage you to use 3 or more variables). Include a brief written description of what your graph shows. Is this graph helpful in answering your research question? If it is helpful, will you need to add/modify anything in this graph in the final report? 
 
+avg_reb_comparison <- combined_df %>%
+  select(-c(Total, GP)) %>%  
+  pivot_longer(cols = -c(Player, Season), names_to = "Metric", values_to = "Value") %>%  
+  filter(grepl("REB", Metric)) %>%  # Filter columns related to rebounds
+  ggplot(aes(x = Player, y = Value, fill = Season)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Player", y = "Value", fill = "Season") +
+  ggtitle("Comparison of Average Rebounds per Game") +
+  theme_minimal() +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
 
 ## Conclusion
 
-Include your initial intuition as to what the answer to your research question is using the data sets and visualizations you created. 
+ The performance of individual players on the Denver team varies between regular-season and playoff games. 
+Regular Season:
+
+Nikola Jokic was the top scorer with an average of 24.5 points per game, followed by Jamal Murray with 20.0 points per game.
+Nikola Jokic also had the highest average rebounds per game with 11.8, followed by Michael Porter Jr. with 5.5 rebounds per game.
+Playoff Season:
+
+In the playoffs, Nikola Jokic continued to be the leading scorer for the team with an average of 30.0 points per game, followed by Jamal Murray with 26.1 points per game.
+Nikola Jokic maintained a high average of rebounds with 10.0 rebounds per game, while Michael Porter Jr. had 7.1 rebounds per game.
+These comparisons indicate that the performance of key players, such as Nikola Jokic and Jamal Murray, improved during the playoffs. They were able to increase their scoring and rebounding averages compared to the regular season. This information can be valuable for the team in strategizing and making decisions during playoff games.
