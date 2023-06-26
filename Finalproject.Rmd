@@ -20,23 +20,36 @@ The origin of the data is the ESPN website, specifically the pages containing th
 
 Include R code and written explanation to import your **TWO** data sets.
 
+
+```{r}
 library(rvest)
+```
 
 # Regular Season Player Stats
+
+```{r}
 regular_season_url <- "https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/2"
 regular_season_table <- regular_season_url %>%
   read_html() %>%
   html_nodes(css = "table") %>%
   html_table(fill = TRUE)
+```
 
 
 # Playoff Season Player Stats
+
+
+```{r}
 playoff_season_url <- "https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/3"
 playoff_season_table <- playoff_season_url %>%
   read_html() %>%
   html_nodes(css = "table") %>%
   html_table(fill = TRUE)
+```
 
+```{r}
+
+```
 
 
 #### Data Wrangling 
@@ -44,14 +57,35 @@ playoff_season_table <- playoff_season_url %>%
 Include R code and written explanation for wangling your data (you can make multiple wrangled data sets). 
 
 # Assuming the desired table is the Second one
+
+```{r}
 library(dplyr)
 regular_season_df <- regular_season_table[[2]] 
 playoff_season_df <- playoff_season_table[[2]] 
-
+```
 
 # Combine the data frames
-combined_df <- bind_rows(regular_season_df, playoff_season_df)
+```{r}
+regular_season_w_name <- bind_cols(regular_season_df,regular_season_table[[1]])
 
+
+
+regular_season_w_name <-
+regular_season_w_name %>% 
+  relocate(Name)
+
+playoff_season_w_name <- bind_cols(playoff_season_df,playoff_season_table[[1]])
+
+
+
+playoff_season_w_name <-
+playoff_season_w_name %>% 
+  relocate(Name)
+
+
+
+combined_df <- full_join(regular_season_w_name, playoff_season_w_name,by="Name")
+```
 
 ## Data Visualization
 
@@ -60,6 +94,8 @@ combined_df <- bind_rows(regular_season_df, playoff_season_df)
 Include R code to make one data visualization (I would encourage you to use 3 or more variables). Include a brief written description of what your graph shows. Is this graph helpful in answering your research question? If it is helpful, will you need to add/modify anything in this graph in the final report? 
 # Plot 1: Average Points per Game comparison
 
+
+```{r}
 avg_pts_comparison <- combined_df %>%
   group_by(NAME, Season) %>%
   summarise(Avg_PTS = mean(PTS, na.rm = TRUE)) %>%
@@ -71,11 +107,14 @@ avg_pts_comparison <- combined_df %>%
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
   
 print(plot)
+```
 
 #### Plot 2:: Average Rebounds per Game comparison
 
 Include R code to make one data visualization (I would encourage you to use 3 or more variables). Include a brief written description of what your graph shows. Is this graph helpful in answering your research question? If it is helpful, will you need to add/modify anything in this graph in the final report? 
 
+
+```{r}
 avg_reb_comparison <- combined_df %>%
   select(-c(Total, GP)) %>%  
   pivot_longer(cols = -c(Player, Season), names_to = "Metric", values_to = "Value") %>%  
@@ -86,6 +125,7 @@ avg_reb_comparison <- combined_df %>%
   ggtitle("Comparison of Average Rebounds per Game") +
   theme_minimal() +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
+```
 
 ## Conclusion
 
