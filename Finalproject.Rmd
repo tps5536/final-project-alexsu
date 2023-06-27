@@ -1,10 +1,10 @@
 ---
-title: "Initial EDA Basic Outline"
+title: "Final Project"
 author: "Tsu-yen Su"
 output: html_notebook
 ---
 
-This is an outline for your Initial EDA. You can follow this outline, or you can modify it as you see fit. Do what works best for your project. 
+t. 
 
 ## Research Question 
 
@@ -20,7 +20,7 @@ The origin of the data is the ESPN website, specifically the pages containing th
 
 Include R code and written explanation to import your **TWO** data sets.
 
-
+## (A) .Rmd Line numbers where at least two different data sources are imported:  
 ```{r}
 library(rvest)
 ```
@@ -46,8 +46,33 @@ playoff_season_table <- playoff_season_url %>%
   html_nodes(css = "table") %>%
   html_table(fill = TRUE)
 ```
-
+## (B) .Rmd Line numbers for inspecting data intake:  
+#Regular Season
 ```{r}
+library(dplyr)
+library(rvest)
+
+regular_season_url <- "https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/2"
+regular_season_table <- regular_season_url %>%
+  read_html() %>%
+  html_nodes(css = "table") %>%
+  html_table(fill = TRUE)
+
+glimpse(regular_season_table)
+
+```
+#Playoff Season
+```{r}
+library(dplyr)
+library(rvest)
+
+playoff_season_url <- "https://www.espn.com/nba/team/stats/_/name/den/season/2023/seasontype/3"
+playoff_season_table <- playoff_season_url %>%
+  read_html() %>%
+  html_nodes(css = "table") %>%
+  html_table(fill = TRUE)
+
+glimpse(playoff_season_table)
 
 ```
 
@@ -56,6 +81,8 @@ playoff_season_table <- playoff_season_url %>%
 
 Include R code and written explanation for wangling your data (you can make multiple wrangled data sets). 
 
+##(A) .Rmd Line number(s) for general data wrangling:
+
 # Assuming the desired table is the Second one
 
 ```{r}
@@ -63,6 +90,7 @@ library(dplyr)
 regular_season_df <- regular_season_table[[2]] 
 playoff_season_df <- playoff_season_table[[2]] 
 ```
+##(B) .Rmd Line number(s) for a join operation:  
 
 # Combine the data frames
 ```{r}
@@ -86,56 +114,154 @@ playoff_season_w_name %>%
 
 combined_df <- full_join(regular_season_w_name, playoff_season_w_name,by="Name")
 ```
+##(C) .Rmd Line number(s) for use of reduction and/or transformation functions
+
+# Extract the top 10 scoring players on both regular season and playoff season
+```{r}
+library(dplyr)
+
+combined_df <- combined_df %>%
+  slice(1:10)
+
+
+
+
+```
+## (D) .Rmd Line number(s) for a pivot_wider or pivot_longer operation (or equivalent):
+```{r}
+library(tidyr)
+
+# Regular Season Player Stats
+regular_season_data <- data.frame(
+  NAME = c("Nikola Jokic", "Jamal Murray", "Michael Porter Jr.", "Aaron Gordon"),
+  GP = c(69, 65, 62, 68),
+  PTS = c(24.5, 20.0, 17.4, 16.3),
+  REB = c(11.8, 4.0, 5.5, 6.6),
+  AST = c(9.8, 6.2, 1.0, 3.0)
+)
+
+# Pivot from wide to long format
+regular_season_long <- pivot_longer(regular_season_data, cols = c(GP, PTS, REB, AST), names_to = "Statistic", values_to = "Value")
+
+# Output the long format
+regular_season_long
+
+```
+##(G) .Rmd Line number(s) for use of loops and/or control flow: 
+#Total points scored 
+```{r}
+# Regular Season Player Stats
+regular_season_data <- data.frame(
+  NAME = c("Nikola Jokic", "Jamal Murray", "Michael Porter Jr.", "Aaron Gordon"),
+  GP = c(69, 65, 62, 68),
+  PTS = c(24.5, 20.0, 17.4, 16.3),
+  REB = c(11.8, 4.0, 5.5, 6.6),
+  AST = c(9.8, 6.2, 1.0, 3.0)
+)
+
+# Create an empty list to store processed data
+processed_data <- list()
+
+# Loop through each player's stats
+for (i in 1:nrow(regular_season_data)) {
+  player_name <- regular_season_data$NAME[i]
+  games_played <- regular_season_data$GP[i]
+  points <- regular_season_data$PTS[i]
+  rebounds <- regular_season_data$REB[i]
+  assists <- regular_season_data$AST[i]
+  
+  # Perform any desired transformations or calculations
+  total_points <- points * games_played
+  
+  # Store the processed data in a new data frame
+  processed_data[[i]] <- data.frame(Player = player_name, TotalPoints = total_points, Rebounds = rebounds, Assists = assists)
+}
+
+# Combine all the processed data frames into a single data frame
+final_data <- do.call(rbind, processed_data)
+
+# Output the final data frame
+final_data
+
+```
 
 ## Data Visualization
 
 #### Plot 1
 
-Include R code to make one data visualization (I would encourage you to use 3 or more variables). Include a brief written description of what your graph shows. Is this graph helpful in answering your research question? If it is helpful, will you need to add/modify anything in this graph in the final report? 
+## (A) .Rmd Line number(s) for use of multiple different geoms on a single plot:  
+# Plot 1: Average Points per Game During Regular Season
+
+
+```{r}
 # Plot 1: Average Points per Game comparison
 
+library(ggplot2)
 
-```{r}
-avg_pts_comparison <- combined_df %>%
-  group_by(NAME, Season) %>%
-  summarise(Avg_PTS = mean(PTS, na.rm = TRUE)) %>%
-  ggplot(aes(x = NAME, y = Avg_PTS, fill = Season)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(x = "Player", y = "Average Points per Game", fill = "Season") +
-  ggtitle("Comparison of Average Points per Game") +
-  theme_minimal() +
-  theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
-  
-print(plot)
+plot1 <- ggplot(combined_df, aes(x = reorder(Name, -PTS.x), y = PTS.x)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  geom_text(aes(label = PTS.x), vjust = -0.5, size = 3.5) +
+  labs(title = "Average Points per Game During Regular Season",
+       x = "Player", y = "Average Points per Game") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+plot1
+
+
+
+
 ```
 
-#### Plot 2:: Average Rebounds per Game comparison
+#### Plot 2:: Average Per Game During Playoff Season
 
-Include R code to make one data visualization (I would encourage you to use 3 or more variables). Include a brief written description of what your graph shows. Is this graph helpful in answering your research question? If it is helpful, will you need to add/modify anything in this graph in the final report? 
-
-
+##(B) .Rmd Line number(s) for use of multiple aesthetics: 
 ```{r}
-avg_reb_comparison <- combined_df %>%
-  select(-c(Total, GP)) %>%  
-  pivot_longer(cols = -c(Player, Season), names_to = "Metric", values_to = "Value") %>%  
-  filter(grepl("REB", Metric)) %>%  # Filter columns related to rebounds
-  ggplot(aes(x = Player, y = Value, fill = Season)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(x = "Player", y = "Value", fill = "Season") +
-  ggtitle("Comparison of Average Rebounds per Game") +
-  theme_minimal() +
-  theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
+
+plot2 <- ggplot(combined_df, aes(x = reorder(Name, -PTS.y), y = PTS.y)) +
+  geom_bar(stat = "identity", fill = "green") +
+  geom_text(aes(label = PTS.y), vjust = -0.5, size = 3.5) +
+  labs(title = "Average Points per Game During Playoff Season",
+       x = "Player", y = "Average Points per Game") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
 ```
+#### Plot 3:: Total points, rebounds, and assists for each player
+
+##(C) .Rmd Line number(s) for use of layered graphics: 
+```{r}
+library(ggplot2)
+
+# Plot the total points, rebounds, and assists for each player
+ggplot(final_data, aes(x = Player)) +
+  geom_col(aes(y = TotalPoints, fill = "Total Points"), width = 0.5, position = "dodge") +
+  geom_col(aes(y = Rebounds, fill = "Rebounds"), width = 0.5, position = "dodge") +
+  geom_col(aes(y = Assists, fill = "Assists"), width = 0.5, position = "dodge") +
+  labs(x = "Player", y = "Value", fill = "Category") +
+  scale_fill_manual(values = c("Total Points" = "blue", "Rebounds" = "green", "Assists" = "orange")) +
+  theme_minimal()
+```
+
 
 ## Conclusion
+Based on the analysis of the average points per game for individual players on the Denver team during the regular season and playoff season, several key observations can be made:
 
- The performance of individual players on the Denver team varies between regular-season and playoff games. 
-Regular Season:
+Overall Performance: The data shows that the players' average points per game generally increased during the playoff season compared to the regular season. This indicates that the players were able to elevate their performance and contribute more offensively during the high-pressure playoff games.
 
-Nikola Jokic was the top scorer with an average of 24.5 points per game, followed by Jamal Murray with 20.0 points per game.
-Nikola Jokic also had the highest average rebounds per game with 11.8, followed by Michael Porter Jr. with 5.5 rebounds per game.
-Playoff Season:
+Jokic Dominance: Nikola Jokic stands out as a highly consistent and impactful player. He averaged 24.5 points per game during the regular season, which increased to an impressive 30 points per game during the playoffs. This suggests that Jokic thrives under pressure and significantly elevates his scoring output in the postseason.
 
-In the playoffs, Nikola Jokic continued to be the leading scorer for the team with an average of 30.0 points per game, followed by Jamal Murray with 26.1 points per game.
-Nikola Jokic maintained a high average of rebounds with 10.0 rebounds per game, while Michael Porter Jr. had 7.1 rebounds per game.
-These comparisons indicate that the performance of key players, such as Nikola Jokic and Jamal Murray, improved during the playoffs. They were able to increase their scoring and rebounding averages compared to the regular season. This information can be valuable for the team in strategizing and making decisions during playoff games.
+Jamal Murray's Impact: Jamal Murray also demonstrated a significant improvement in his performance during the playoffs. He averaged 20 points per game during the regular season, which notably rose to 26.1 points per game in the postseason. Murray's ability to elevate his scoring showcases his importance as a key contributor during playoff games.
+
+Varied Performances: While Jokic and Murray consistently performed at a high level, there were some players who experienced fluctuations in their performance. Michael Porter Jr. averaged 17.4 points per game during the regular season, which decreased to 13.4 points per game in the playoffs. On the other hand, Aaron Gordon saw a slight increase in his scoring from 16.3 to 13.3 points per game.
+
+In conclusion, the data analysis highlights the varying performances of individual players on the Denver team between the regular season and playoff games. It shows an overall improvement in scoring during the playoffs, with Jokic and Murray emerging as key contributors with significant increases in their average points per game. However, there were some players who experienced fluctuations or a decrease in their scoring output. This analysis provides insights into how players on the Denver team handle the pressure and adapt their game during the playoffs, which can be valuable for the team's coaching staff and management in making strategies and decisions for future playoff campaigns.
+
+Furthermore, the provided data showcases the specific total points, rebounds, and assists for each player:
+
+Player	TotalPoints	Rebounds	Assists
+Nikola Jokic	1690.5	11.8	9.8
+Jamal Murray	1300.0	4.0	6.2
+Michael Porter Jr.	1078.8	5.5	1.0
+Aaron Gordon	1108.4	6.6	3.0
+These additional statistics provide further context to the players' performances and contribute to the overall understanding of their contributions to the team.
+
